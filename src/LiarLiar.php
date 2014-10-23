@@ -21,29 +21,24 @@ class LiarLiar {
       $this->keymaster=array(); // indexed by table name, row #, column name
    }
 
+   /** 
+     * Delegate an undefined method call to a PDO database object 
+     */
    public function __call($dbname,$args) {
       if (array_key_exists($dbname, $this->pdos)) return $this->pdos[$dbname];
       else return $this->pdos[$dbname] = new Db($dbname,$this->user,$this->pw);
    }
 
-/*
-      return $this->pdo->q(
- function($row) {
-         $expressions=array();
-         foreach(array_keys($row) as $key) {
-            $expressions[] = "$key='".PDO::quote($row[$key])."'";
-         }
-         return "INSERT INTO $implode(',',$expressions).';';
-      });
-*/
-
-   public function MpeopleDataPeople($keyfields=NULL) {
-      if (!array_key_exists('people',$this->keymaster)) $this->keymaster['people'] = array();
+   public function lieAbout($database, $tablename, $keyfields=NULL) {
+      if (!array_key_exists($tablename,$this->keymaster)) $this->keymaster[$tablename] = array();
       if (is_null($keyfields)) $keyfields=array();
 
       $keys=array();
-      $fields = $this->MpeopleData()->people();
+      $table = $this->$database()->$tablename();
+      $fields = $table->columns();
+
       $expressions=array();
+
       foreach($fields as $field) {
          $method="fake_".$field['data_type'];
          $expressions[$field['column_name']] = $this->$method($field);
@@ -52,9 +47,9 @@ class LiarLiar {
          }
       }
 
-      $this->keymaster['people'][] = $keys; // buffer up the interesting fields we just created, in case we need to reference them for some other relation
+      $this->keymaster[$tablename][] = $keys; // buffer up the interesting fields we just created, in case we need to reference them for some other relation
 
-      return "INSERT INTO people (".implode(',',array_keys($expressions)).") VALUES (".implode("', '",$expressions)."')\n";
+      return "INSERT INTO $tablename (".implode(',',array_keys($expressions)).") VALUES (".implode("', '",$expressions)."')\n";
    }
 
    public function fake_varchar($field) { return ('REPLACE WITH FAKER DATA'); }
@@ -73,9 +68,9 @@ class LiarLiar {
 */
 
    public static function bist($user='root',$pw='') {
-     $lieAbout = new LiarLiar($user, $pw);
-     $people = $lieAbout->MpeopleDataPeople(array('uid'));
+     $liar = new LiarLiar($user, $pw);
+     $people = $liar->lieAbout('MpeopleData', 'people', array('uid'));
      echo var_dump($people);
-     echo var_dump($lieAbout->keymaster);
+     echo var_dump($liar->keymaster);
    }
 }
