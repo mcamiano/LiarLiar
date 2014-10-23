@@ -2,40 +2,29 @@
 
 use Liar\Liar\Db;
 
-class DbTest extends PHPUnit_Framework_TestCase {
-
+class DbTest extends \Codeception\TestCase\Test 
+{
     use Codeception\Specify;
 
-
-    protected function setUp() {
-        $this->db = new Db('testdb', 'root', '');
-    }
-
+    protected function _before() { }
+    protected function _after() { }
 
     public function testDbConnection()
     {
         $this->specify('it should connect to a database normally', function() {
-            $db = new Db('testdb', 'root', '');
+            $db = new Db('testdb', 'fakeuser', 'secret');
         });      
 
-        $this->specify('it should not connect to a database with bad info ', function() {
-            $db = new Db('thisdb-doesnot-exist', 'some fake user', 'some fake password');
-        }, [
-            'throws' => new \PDOException
-        ]);      
-
         $this->specify('it supports a method to access the db for queries', function() {
-            $result = $this->db->q('SELECT * FROM master', function($row) { return array_keys($row); });
-            verify($result)->contains('id');
-            verify($result)->contains('name');
-            verify($result)->contains('created_on');
-            verify($result)->contains('enumerated_value');
-            verify($result)->contains('long_field');
+            $somedb = new Db('testdb', 'fakeuser', 'secret');
+            $result = $somedb->q('SELECT * FROM information_schema.ENGINES', function($row) { return array_keys($row); });
+            verify($result[0])->contains('ENGINE');
         });
 
         $this->specify('it supports a method to access the column properties for a table ', function() {
-            $columns = $this->db->master();
-            verify(length($columns))->equals('5');
-        }
+            $somedb = new Db('testdb', 'fakeuser', 'secret');
+            $table = $somedb->master();
+            verify(count($table->columns()))->equals('5');
+        });
     }
 }

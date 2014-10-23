@@ -15,8 +15,13 @@ class Db {
    }
    
    public function q($q,$closure=NULL) {
-      if (is_callable($closure)) return array_map($this->handle->query($q), $closure);
-      return $this->handle->query($q);
+      if (is_callable($closure)) {
+         $result = $this->handle->query($q);
+         if (!$result) throw new Exception("Bad query $q");
+         $result = $result->fetchAll(PDO::FETCH_ASSOC);
+         return array_map($closure, $result);
+      }
+      return $this->handle->query($q)->fetchAll(PDO::FETCH_ASSOC);
    }
 
    /** 
@@ -30,8 +35,8 @@ class Db {
 
       $cols = $this->q("
          SELECT column_name, data_type, column_type, IFNULL(character_maximum_length, numeric_precision) as size
-           FROM information_schema.columns WHERE table_schema = '{$this->dbname}' AND table_name = '$tablename';
-      ")->fetchAll();
+           FROM information_schema.columns WHERE table_schema = '{$this->dbname}' AND table_name = '$tablename'
+      ");
       $this->tables[$tablename] = new Table($tablename, $cols);
       return $this->tables[$tablename];
    }

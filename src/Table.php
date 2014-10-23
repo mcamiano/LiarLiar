@@ -51,7 +51,7 @@ class Table {
       foreach( $this->columnNames() as $name ) {
          $insertableValues[$name] = preg_replace("/'/", "''", $values[$name]);
       }
-      return "INSERT INTO {$this->name} ({$this->formatColumnList()}) VALUES ({$this->formatValueList($values)})\n";
+      return "INSERT INTO {$this->name} ({$this->formatColumnList()}) VALUES ({$this->formatValueList($values)})";
    }
 
    public function columns() { return $this->columns; }
