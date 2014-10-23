@@ -1,0 +1,30 @@
+{
+    "name": "mcamiano/liarliar",
+    "description": "Just make stuff up to populate a MySQL database",
+    "keywords": ["php", "faker", "fixture", "seed", "test", "mock"],
+    "homepage": "http://github.com/mcmamiano/LiarLiar",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Mitch Amiano",
+            "email": "mitchellamiano@gmail.com",
+            "homepage": "http://github.com/mcamiano",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "fzaninotto/faker": "1.5.*@dev",
+        "codeception/codeception": "2.1.*@dev",
+        "codeception/specify": "dev-master",
+        "codeception/verify": "dev-master"
+    },
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "Liar\\Liar\\": ["src"]
+        }
+    },
+    "minimum-stability": "dev"
+}
