@@ -33,8 +33,12 @@ class LiarLiar {
 
    /** 
      * Generate fake data for a database table, with hints for remembering key fields, and hints for populating foreign keys
+     * @param string $database
+     * @param string $tablename
+     * @param array $keyfields
+     * @param array[] $foreignKeys  ex: array('master'=>array('master_id' => 'id', 'other_master_id'=>'id'));
      */
-   public function lieAbout($database, $tablename, $keyfields=NULL) {
+   public function lieAbout($database, $tablename, $keyfields=NULL, $foreignKeys=NULL) {
       if (!array_key_exists($tablename,$this->keymaster)) $this->keymaster[$tablename] = array();
       $hints = array();
       if (array_key_exists($tablename, $this->hint)) {
@@ -43,20 +47,36 @@ class LiarLiar {
 
       if (is_null($keyfields)) $keyfields=array();
 
+      // Sample any foreign keys needed to establish relationships
+      $remapForeignKeys=array();
+      if (is_array($foreignKeys)) {
+         foreach( $foreignKeys as $table => $fkeys ) {
+             foreach( $fkeys as $fkey => $fkeySource ) {
+                 $remapForeignKeys[$fkey] = $this->sampleCachedKey($table,$fkeySource);
+             }
+         }
+      }
+
       $keys=array();
       $table = $this->$database()->$tablename();
       $fields = $table->columns();
 
       $expressions=array();
 
+      // Generate fake data, substituting in foreign key values where they exist
       foreach($fields as $field) {
-         $method="fake_".$field['data_type'];
+         $fieldname = $field['column_name'];
 
-         if (array_key_exists($field['column_name'], $hints)) {
-             $method="fake_".$hints[ $field['column_name'] ];
+         if (array_key_exists($fieldname, $remapForeignKeys)) {
+             $expressions[$fieldname] = $remapForeignKeys[$fieldname];
+         } else {
+             $method="fake_".$field['data_type'];
+
+             if (array_key_exists($field['column_name'], $hints)) {
+                 $method="fake_".$hints[ $field['column_name'] ];
+             }
+             $expressions[$field['column_name']] = $this->$method($field);
          }
-
-         $expressions[$field['column_name']] = $this->$method($field);
 
          if (in_array($field['column_name'], $keyfields)) {
              $keys[$field['column_name']] = $expressions[$field['column_name']];
@@ -64,8 +84,20 @@ class LiarLiar {
       }
 
       $this->keymaster[$tablename][] = $keys; // buffer up the interesting fields we just created, in case we need to reference them for some other relation
-      return "INSERT INTO $tablename (".implode(',',array_keys($expressions)).") VALUES (".implode("', '",$expressions)."')\n";
+      return $table->formatSQLInsert($expressions);
    }
+
+   /**
+     * Sample a single key value from previously generated values.
+     * @param string $table
+     * @param string $field
+     */
+   public function sampleCachedKey($tablename, $fieldname) {
+       $keylist = $this->keymaster[$tablename];
+       return $keylist[rand(0,count($keylist)-1)][$fieldname];
+   }
+
+   public function fake_date($field) { $dt = $this->faker->dateTime(); return $dt->format('Y-m-d H:i:s'); }
 
    public function fake_varchar($field) { return $this->faker->text( intval($field['size']) ); }
 
