@@ -4,15 +4,15 @@ return array(
     'db' => array(
         'default' => array(
             'hostname' => "localhost",
-            'username' => "fakeuser",
-            'password' => "secret",
-            'database' => "pat"
+            'username' => "root",
+            'password' => "",
+            'database' => "testdb"
         ),
-        'sis' => array(
+        'otherdb' => array(
             'hostname' => "localhost",
-            'username' => "fakeuser",
-            'password' => "secret",
-            'database' => "MpeopleData"
+            'username' => "root",
+            'password' => "",
+            'database' => "testdb"
         )
     )
 );

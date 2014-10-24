@@ -131,8 +131,8 @@ class LiarLiar {
 
    public static function bist($user='root',$pw='') {
      $liar = new LiarLiar($user, $pw);
-     $people = $liar->lieAbout('MpeopleData', 'people', array('uid'));
-     echo $people;
+     $master = $liar->lieAbout('testdb', 'master', array('id'));
+     echo $master;
      // echo var_dump($liar->keymaster);
    }
 }
