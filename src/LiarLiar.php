@@ -10,18 +10,21 @@ class LiarLiar {
    protected $pdos;
    protected $user;
    protected $pw;
+   protected $autoincrementBase;
+   protected $autoincrementId;
 
       // buffers up the interesting fields we just created, in case we need to reference them for some other relation
    public $keymaster;
    public $hint;
 
-   public function __construct($user='FAKEUSER', $pw='FAKEPASSWORD') {
+   public function __construct($user='FAKEUSER', $pw='FAKEPASSWORD', $autoid=1000) {
       $this->pdos=array();
       $this->faker = \Faker\Factory::create();
       $this->user=$user;
       $this->pw=$pw;
       $this->keymaster=array(); // indexed by table name, row #, column name
       $this->hint=array(); // indexed by table name, column name
+      $this->resetAutoincrement($autoid);
    }
 
    /** 
@@ -88,6 +91,11 @@ class LiarLiar {
       return $table->formatSQLInsert($expressions);
    }
 
+   public function resetAutoincrement($newbase=1000) {
+      $this->autoincrementBase = $newbase;
+      $this->autoincrementId = $this->autoincrementBase + rand( 0, 1000 );
+   }
+
    /**
      * Sample a single key value from previously generated values.
      * @param string $table
@@ -113,7 +121,7 @@ class LiarLiar {
 
    public function fake_tinytext($field) { return $this->faker->text( intval($field['size'])); }
 
-   public function fake_autoincrement($field) { $d=new DateTime(); return $d->getTimestamp() % 100000; }
+   public function fake_autoincrement($field) { return ++$this->autoincrementId; }
 
 /*
           "title"=>preg_replace( "/\s+/", " ", implode(' ',$fake->words(4))),
@@ -132,11 +140,25 @@ class LiarLiar {
        $this->hint[$tablename][$fieldname] = $hint; // TODO verify hint has a correspondingfake_* method
    }
 
-   public static function bist($user='root',$pw='') {
+   public static function bist($user='root',$pw='', $n=10) {
+     $d=new DateTime(); 
+
      $liar = new LiarLiar($user, $pw);
+
      $liar->typeHint('master','id','autoincrement');
-     $master = $liar->lieAbout('testdb', 'master', array('id'));
-     echo $master;
+     $liar->typeHint('slave','id','autoincrement');
+
+     $liar->resetAutoincrement( $d->getTimestamp() % 100000 );
+     for ($i=0; $i<$n; ++$i) {
+         $master = $liar->lieAbout('testdb', 'master', array('id'));
+         echo $master.";\n";
+     }
+
+     $liar->resetAutoincrement( $d->getTimestamp() % 1000 );
+     for ($i=0; $i<$n; ++$i) {
+         $slave = $liar->lieAbout('testdb', 'slave', $keys=array('id'), $fkeys=array('master'=>array('master_id' => 'id', 'other_master_id'=>'id')) );
+         echo $slave.";\n";
+     }
      // echo var_dump($liar->keymaster);
    }
 }
