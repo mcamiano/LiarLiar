@@ -3,6 +3,7 @@
 namespace Liar\Liar;
 
 use \Faker\Factory;
+use \DateTime;
 
 class LiarLiar {
    protected $faker;
@@ -112,6 +113,8 @@ class LiarLiar {
 
    public function fake_tinytext($field) { return $this->faker->text( intval($field['size'])); }
 
+   public function fake_autoincrement($field) { $d=new DateTime(); return $d->getTimestamp() % 100000; }
+
 /*
           "title"=>preg_replace( "/\s+/", " ", implode(' ',$fake->words(4))),
           "performance_ind"=>80+(int)$fake->randomDigit(),
@@ -131,6 +134,7 @@ class LiarLiar {
 
    public static function bist($user='root',$pw='') {
      $liar = new LiarLiar($user, $pw);
+     $liar->typeHint('master','id','autoincrement');
      $master = $liar->lieAbout('testdb', 'master', array('id'));
      echo $master;
      // echo var_dump($liar->keymaster);
