@@ -104,7 +104,7 @@ class LiarLiar {
    public function fake_int($field) { return $this->faker->randomNumber(6) % $field['size']; }
 
    public function fake_enum($field) {
-      $picks=explode(',',preg_replace('/(^enum\(|\)$)/','',$field['column_type']));
+      $picks=array_map(function($v) { return trim($v,"' "); }, explode(',',preg_replace('/(^enum\(|\)$)/','',$field['column_type'])));
       return $picks[$this->faker->randomDigit % count($picks) ];
    }
 
