@@ -106,7 +106,6 @@ class LiarLiar {
        return $keylist[rand(0,count($keylist)-1)][$fieldname];
    }
 
-   public function fake_date($field) { $dt = $this->faker->dateTime(); return $dt->format('Y-m-d H:i:s'); }
 
    public function fake_varchar($field) { return $this->faker->text( intval($field['size']) ); }
 
@@ -121,8 +120,43 @@ class LiarLiar {
 
    public function fake_tinytext($field) { return $this->faker->text( intval($field['size'])); }
 
+   // this should just be automatically mapped to Faker calls
+   public function fake_date($field) { return $this->faker->date(); }
+   public function fake_dateTime($field) { $dt = $this->faker->dateTime(); return $dt->format('Y-m-d H:i:s'); }
+   public function fake_time($field) { return $this->faker->time(); }
+   public function fake_year($field) { return $this->faker->year(); }
+   public function fake_month($field) { return $this->faker->month(); }
+   public function fake_monthName($field) { return $this->faker->monthName(); }
+   public function fake_name($field) { return $this->faker->name(); }
+   public function fake_firstName($field) { return $this->faker->firstName(); }
+   public function fake_lastName($field) { return $this->faker->lastName(); }
+   public function fake_paragraph($field) { return $this->faker->paragraph(); }
+   public function fake_word($field) { return $this->faker->word(); }
+   public function fake_words($field) { return implode(' ',$this->faker->words()); }
+   public function fake_sentence($field) { return $this->faker->sentence(); }
+   public function fake_state($field) { return $this->faker->state(); }
+   public function fake_stateAbbr($field) { return $this->faker->stateAbbr(); }
+   public function fake_streetAddress($field) { return $this->faker->streetAddress(); }
+   public function fake_city($field) { return $this->faker->city(); }
+   public function fake_postcode($field) { return $this->faker->postcode(); }
+   public function fake_phoneNumber($field) { return $this->faker->phoneNumber(); }
+   public function fake_safeEmail($field) { return $this->faker->safeEmail(); }
+   public function fake_email($field) { return $this->faker->email(); }
+   public function fake_url($field) { return $this->faker->url(); }
+   public function fake_userName($field) { return $this->faker->userName(); }
+   public function fake_title($field) { return $this->faker->title(); }
+
+   // aliases
+   public function fake_zip($field) { return $this->faker->postcode(); }
+
+   public function fake_unityid($field) { return $this->faker->lexify('????????'); }
+   public function fake_ou($field) { return $this->faker->numerify('#####'); }
+   public function fake_AAANNN($field) { return $this->faker->bothify('???###'); }
+
    public function fake_autoincrement($field) { return ++$this->autoincrementId; }
 
+   public function fake_fullName($field) { return $this->faker->firstName() . ' ' . $this->faker->lastName(); }
+   public function fake_fullAddress($field) { return $this->faker->streetAddress() . ' ' . $this->faker->city() . ' ' . $this->faker->state() . ' ' . $this->faker->postcode();  }
 /*
           "title"=>preg_replace( "/\s+/", " ", implode(' ',$fake->words(4))),
           "performance_ind"=>80+(int)$fake->randomDigit(),
