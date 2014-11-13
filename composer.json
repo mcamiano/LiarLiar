@@ -15,11 +15,12 @@
     "require": {
         "php": ">=5.3.0",
         "fzaninotto/faker": "1.5.*@dev",
+        "symfony/yaml": "~2.0"
+    },
+    "require-dev": {
         "codeception/codeception": "2.1.*@dev",
         "codeception/specify": "dev-master",
         "codeception/verify": "dev-master"
-    },
-    "require-dev": {
     },
     "autoload": {
         "psr-4": {

@@ -1,0 +1,11 @@
+db:
+  default:
+    database: testdb
+    hostname: localhost
+    username: root
+    password: ""
+  otherdb:
+    database: testdb
+    hostname: localhost
+    username: root
+    password: ""
