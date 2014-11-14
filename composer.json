@@ -1,4 +1,11 @@
 {
+    "repositories": [
+        {
+            "type": "git",
+            "url": "https://github.com/mcamiano/Verify.git"
+        }
+    ],
+
     "name": "mcamiano/liarliar",
     "description": "Just make stuff up to populate a MySQL database",
     "keywords": ["php", "faker", "fixture", "seed", "test", "mock"],

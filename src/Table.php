@@ -5,6 +5,7 @@ namespace Liar\Liar;
 class Table {
    public $name;
    protected $columns;
+   protected $rows;
 
    /** 
      * @param string $tablename 
@@ -13,6 +14,7 @@ class Table {
    public function __construct($tablename, $columns=NULL) {
       $this->name=$tablename;
       $this->columns=array();
+      $this->rows=array();
 
       if (is_null($columns)) {
       } else if (!is_array($columns)) {
@@ -43,15 +45,15 @@ class Table {
    }
 
    /**
-     * create a single SQL insert statement to insert one row of values; this is more for dumping the sample SQL than creating test data
-     * @param array $values   a singleton list of field values, indexed by column name
-     */
-   public function formatSQLInsert($values) {
-      $insertableValues = array();
-      foreach( $this->columnNames() as $name ) {
-         $insertableValues[$name] = preg_replace("/'/", "''", $values[$name]);
+    *  Insert a row into the table; requires only that column names be consistent with defined names; others are ignored
+    *  defined columns without values are assigned NULL by default
+    */
+   public function insert( $hash ) {
+      $row = array();
+      foreach ($this->columnNames() as $name) {
+         $row[$name] = isset($hash[$name]) ? $hash[$name] : 'NULL';
       }
-      return "INSERT INTO {$this->name} ({$this->formatColumnList()}) VALUES ({$this->formatValueList($values)})";
+      array_push($this->rows,$row);
    }
 
    public function columns() { return $this->columns; }
@@ -60,16 +62,5 @@ class Table {
 
    public function formatColumnList() { return implode(',', $this->columnNames()); }
 
-   public function formatValueList($values) { 
-      $insertables=array();
-      foreach( $this->columns() as $name => $definition ) {
-         $insertableValue = preg_replace("/'/", "''", $values[$name]);
-         if ($definition['data_type'] == 'int' || $definition['data_type'] == 'decimal') {
-            $insertables[$name] = $insertableValue;
-         } else {
-            $insertables[$name] = "'".$insertableValue."'";
-         }
-      }
-      return implode(",",$insertables);
-   }
+   public function rows() { return $this->rows; }
 }

@@ -6,22 +6,22 @@ use \Faker\Factory;
 use \DateTime;
 
 class LiarLiar {
-   protected $faker;
-   protected $pdos;
-   protected $user;
-   protected $pw;
+   protected $databases;
+   protected $credential;
    protected $autoincrementBase;
    protected $autoincrementId;
+   protected $serializerProvider;
+   protected $faker;
 
       // buffers up the interesting fields we just created, in case we need to reference them for some other relation
    public $keymaster;
    public $hint;
 
-   public function __construct($user='FAKEUSER', $pw='FAKEPASSWORD', $autoid=1000) {
-      $this->pdos=array();
+   public function __construct(QueryEngineProvider $credential, \Closure $serializerProvider, $autoid=1000) {
+      $this->databases=array();
+      $this->serializerProvider=$serializerProvider;
       $this->faker = \Faker\Factory::create();
-      $this->user=$user;
-      $this->pw=$pw;
+      $this->credential=$credential;
       $this->keymaster=array(); // indexed by table name, row #, column name
       $this->hint=array(); // indexed by table name, column name
       $this->resetAutoincrement($autoid);
@@ -31,8 +31,8 @@ class LiarLiar {
      * Delegate an undefined method call, giving a proxy Db object to a PDO database connection, aggregating tables
      */
    public function __call($dbname,$args) {
-      if (array_key_exists($dbname, $this->pdos)) return $this->pdos[$dbname];
-      else return $this->pdos[$dbname] = new Db($dbname,$this->user,$this->pw);
+      if (array_key_exists($dbname, $this->databases)) return $this->databases[$dbname];
+      else return $this->databases[$dbname] = new Db($dbname,$this->credential);
    }
 
    /** 
@@ -54,15 +54,16 @@ class LiarLiar {
       // Sample any foreign keys needed to establish relationships
       $remapForeignKeys=array();
       if (is_array($foreignKeys)) {
-         foreach( $foreignKeys as $table => $fkeys ) {
-             foreach( $fkeys as $fkey => $fkeySource ) {
-                 $remapForeignKeys[$fkey] = $this->sampleCachedKey($table,$fkeySource);
-             }
+         foreach( $foreignKeys as $fkey => $fkeySource ) {
+            list($sourcetable,$sourcecolumn) = explode('.',$fkeySource);
+            if (empty($sourcecolumn)||empty($sourcetable)) throw new \Exception('Malformed foreign key reference in config: '.$fkeySource);
+            $remapForeignKeys[$fkey] = $this->sampleCachedKey($sourcetable,$sourcecolumn);
          }
       }
 
       $keys=array();
-      $table = $this->$database()->$tablename();
+      $db = $this->$database();
+      $table = $db->$tablename();
       $fields = $table->columns();
 
       $expressions=array();
@@ -88,7 +89,12 @@ class LiarLiar {
       }
 
       $this->keymaster[$tablename][] = $keys; // buffer up the interesting fields we just created, in case we need to reference them for some other relation
-      return $table->formatSQLInsert($expressions);
+      $table->insert($expressions);
+
+      $sp = $this->serializerProvider;
+      $serializer = $sp( $table );
+
+      return $serializer->render();
    }
 
    public function resetAutoincrement($newbase=1000) {
@@ -174,10 +180,21 @@ class LiarLiar {
        $this->hint[$tablename][$fieldname] = $hint; // TODO verify hint has a correspondingfake_* method
    }
 
+    /**
+     * bist: built-in self-test
+     *
+     */
    public static function bist($user='root',$pw='', $n=10) {
      $d=new DateTime(); 
 
-     $liar = new LiarLiar($user, $pw);
+     $INSERTSerializerProvider = function($table) { return new TableInsertSerializer( $table ); };
+     $CSVSerializerProvider = function($table) { return new CSVSerializer( $table ); };
+
+     $liar = new LiarLiar( 
+        new PDOCredential( function($dbname){return "mysql:host=localhost;dbname=$dbname";}, $user, $pw),
+        // $CSVSerializerProvider 
+        $INSERTSerializerProvider 
+     );
 
      $liar->typeHint('master','id','autoincrement');
      $liar->typeHint('slave','id','autoincrement');
@@ -185,13 +202,13 @@ class LiarLiar {
      $liar->resetAutoincrement( $d->getTimestamp() % 100000 );
      for ($i=0; $i<$n; ++$i) {
          $master = $liar->lieAbout('testdb', 'master', array('id'));
-         echo $master.";\n";
+         echo $master."\n";
      }
 
      $liar->resetAutoincrement( $d->getTimestamp() % 1000 );
      for ($i=0; $i<$n; ++$i) {
          $slave = $liar->lieAbout('testdb', 'slave', $keys=array('id'), $fkeys=array('master'=>array('master_id' => 'id', 'other_master_id'=>'id')) );
-         echo $slave.";\n";
+         echo $slave."\n";
      }
      // echo var_dump($liar->keymaster);
    }

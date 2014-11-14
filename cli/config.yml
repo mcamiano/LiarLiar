@@ -1,3 +1,5 @@
+serializer: csv
+
 db:
   default:
     database: testdb
@@ -9,3 +11,22 @@ db:
     hostname: localhost
     username: root
     password: ""
+
+tables:
+
+  master:
+    count: 5
+    keep-samples:
+      - id
+    hints:
+      id: autoincrement
+
+  slave:
+    count: 15
+    keep-samples:
+      - id
+    foreign-keys: 
+      master_id: master.id
+      other_master_id: master.id 
+    hints:
+      id: autoincrement
