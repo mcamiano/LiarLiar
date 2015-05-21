@@ -29,3 +29,27 @@ magnitude.  SQL data types say next to nothing about the encoding and interpreta
 A SQL schema will have to be extended by annotating it with enough information to generate self-consistent 
 non-vacuous values. Essentially, you are building a functor that generates functions that generate an 
 interconnected graph of data.
+
+
+Running
+=======
+
+Download
+
+Run `composer install`
+
+A simple command-line interface example is provided in `cli/`.
+Edit the `cli/config.yml` to set the database connection information, 
+then `cd ./cli/; php -f tryliar.php`.
+
+The example renders the relations into raw SQL text. There are other renderers possible. 
+
+Limitations
+===========
+The tool is still quite gruesome and needs some tender loving thinking: 
+
+I did not do a good job of SOLIDifying the code when I threw it together. The tests are craptastic as well. Although it does generate relational data, the specification is crudely based on PHP syntax and could be much more readable and concise.
+
+The example uses a built-in self-test ("bist"); bist is a quick-and-dirty throw-away means of doing a unit test. It should be thrown away.
+
+Field format hints are not validated. In particular, if you use a hint that does not exist the tool will vomit.
