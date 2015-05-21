@@ -34,12 +34,12 @@ class LiarLiarTest extends \Codeception\TestCase\Test
         $config=$this->dbconfig();
         $this->liar = new LiarLiar(
            $config['db']['default']['username'],
-           $config['db']['default']['password'],
-           array(
-             array('column_name'=>'id', 'data_type'=>'int', 'column_type'=>'int', 'size'=>11),
-             array('column_name'=>'name', 'data_type'=>'varchar', 'column_type'=>'varchar[20]', 'size'=>20),
-           )
+           $config['db']['default']['password']
         );
+           // array(
+             // array('column_name'=>'id', 'data_type'=>'int', 'column_type'=>'int', 'size'=>11),
+             // array('column_name'=>'name', 'data_type'=>'varchar', 'column_type'=>'varchar[20]', 'size'=>20),
+           // )
     }
 
     protected function _after() { }
